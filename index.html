@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTutor AI 📚✨</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^1.6.0"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="login-view" class="view-container">
+        <div class="container login-container">
+            <header>
+                <h1>🔑 EduTutor AI Login</h1>
+                <p class="subtitle">Access your personalized learning journey!</p>
+                <p id="apiKeyStatus" style="font-size: 0.8em; margin-top: 5px;">API Key Status: Loading...</p>
+            </header>
+            <main>
+                <div class="input-group">
+                    <label for="usernameInput">Username (try "student" or "educator")</label>
+                    <input type="text" id="usernameInput" placeholder="e.g., student">
+                </div>
+                <div class="input-group" id="studentNameGroup">
+                    <label for="studentFullNameInput">Your Full Name (if student)</label>
+                    <input type="text" id="studentFullNameInput" placeholder="e.g., Alex Doe">
+                </div>
+                <div class="input-group">
+                    <label for="passwordInput">Password (any)</label>
+                    <input type="password" id="passwordInput" placeholder="Enter any password">
+                </div>
+                <button id="loginButton">🚀 Login</button>
+                <div id="loginErrorMessage" class="error-message" style="display: none;"></div>
+            </main>
+            <footer>
+                <p>&copy; 2024 EduTutor AI. Empowering Learners.</p>
+            </footer>
+        </div>
+    </div>
+
+    <div id="app-view" style="display: none;">
+        <header class="app-header">
+            <h1>EduTutor AI 📚✨</h1>
+            <button id="logoutButton">👋 Logout</button>
+        </header>
+
+        <div id="student-view" class="container" style="display: none;">
+            <header>
+                <h2>🎓 Student Dashboard</h2>
+            </header>
+            <main>
+                <section id="quiz-generation-section">
+                    <h3 id="diagnosticQuizTitle" class="dynamic-title">🎯 Enter a Topic for Your Diagnostic Quiz:</h3>
+                    <div id="quiz-generator-manual" class="manual-topic-entry">
+                        <div class="input-group">
+                            <label for="topicInput">Quiz Topic:</label>
+                            <input type="text" id="topicInput" placeholder="e.g., Photosynthesis, World War II">
+                        </div>
+                        <button id="generateQuizButton">✨ Start Diagnostic Quiz</button>
+                    </div>
+                    <hr id="topicSeparator" style="display: none;">
+                </section>
+
+                <div id="loadingIndicator" class="loading-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>⏳ Generating your quiz... Please wait!</p>
+                </div>
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <div id="quizContainerWrapper">
+                    <div id="quizContainer"></div>
+                </div>
+
+                <button id="submitQuizButton" style="display: none;">✔️ Submit Quiz</button>
+                <div id="scoreContainer" style="display: none;"></div>
+                
+                <div id="suggestedTopicsContainer" class="suggested-topics-container" style="display: none;">
+                    <h4>🎯 Next Topic Suggestions:</h4>
+                    <div id="suggestionsLoading" class="loading-spinner" style="display: none;">
+                         <div class="spinner"></div>
+                         <p>⏳ Fetching suggestions...</p>
+                    </div>
+                    <div id="suggestionsList" class="suggestions-list"></div>
+                </div>
+
+                <button id="viewProgressReportButton" class="secondary-action-button">📊 View My Progress Report</button>
+            </main>
+        </div>
+
+        <div id="educator-dashboard-view" class="container" style="display: none;">
+            <header>
+                <h2>🧑‍🏫 Educator Dashboard</h2>
+            </header>
+            <main>
+                <section id="google-classroom-integration">
+                    <h3>🔗 Google Classroom Integration</h3>
+                    <button id="syncGoogleClassroomButton">🔄 Sync with Google Classroom (Mock)</button>
+                    <div id="syncStatusMessage" class="status-message" style="display: none;"></div>
+                    <div id="classroomCoursesList" class="courses-list" style="display: none;">
+                        <h4>📚 Synced Courses:</h4>
+                        <ul></ul>
+                    </div>
+                </section>
+                <section id="student-performance-overview">
+                    <h3>📈 Student Performance Overview</h3>
+                    <div id="studentPerformanceTableContainer">
+                        <table id="studentPerformanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Last Topic</th>
+                                    <th>Last Score</th>
+                                    <th>Date</th>
+                                    <th>History</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentPerformanceTableBody">
+                                <!-- Rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                        <p id="noStudentDataMessage" class="info-message" style="display: none; text-align: center; padding: 15px;">No student data available for this session yet.</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+        
+        <div id="report-card-view" class="container report-card-container" style="display: none;">
+            <header>
+                <h2>📜 Student Progress Report</h2>
+            </header>
+            <main>
+                <section>
+                    <p class="student-name-display"><strong>Student:</strong> <span id="reportStudentName"></span></p>
+                </section>
+                <section id="report-quiz-history-section">
+                    <h3>📚 Quiz History</h3>
+                    <div id="reportQuizHistoryTableContainer">
+                        <table id="reportQuizHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Topic</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportQuizHistoryTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                        <p id="noReportHistoryMessage" class="info-message" style="display: none; text-align: center; padding: 15px;">No quiz history available. Take some quizzes!</p>
+                    </div>
+                </section>
+                <section id="report-focus-areas-section">
+                    <h3>🎯 Focus Area Suggestions</h3>
+                     <div id="focusAreasLoading" class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>⏳ Analyzing performance for suggestions...</p>
+                    </div>
+                    <div id="focusAreasErrorMessageEl" class="error-message" style="display: none;"></div>
+                    <ul id="focusAreasList">
+                        <!-- Populated by JS -->
+                    </ul>
+                </section>
+                 <button id="backToDashboardButton" class="home-button">🏠 Back to Dashboard</button>
+            </main>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 EduTutor AI. Learning Redefined. ✨</p>
+        </footer>
+    </div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
